@@ -1,0 +1,89 @@
+@using Majorsoft.Blazor.Components.Debounce
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.JSInterop;
+@inject NavigationManager NavManager
+
+<div style="@(Location == "idx" ? "display:flex; align-self:center; justify-self:center; max-width: 450px; width: 90%;" : "display:flex; align-self:center; justify-self:center; max-width: 600px; width: 90%; margin-left: 3rem;")">
+    <DebounceInput DebounceTime="500" placeholder="Search..." @bind-Value="@userInput" style="width:100%; margin-right:10px; height:40px; border-radius:7px; outline:none; border:1px solid grey; padding:0 10px" OnValueChanged="(value) => { AutocompleteInput(value); }" />
+    <button style="border-radius: 7px; border: 1px solid grey; padding: 0 10px; background-color:navy; color:white; outline:none; box-shadow: 0 5px 10px rgba(0,0,0,0.2);" @onclick="@Search" disabled="@(LoadingState == true ? true : false)" id="search-btn">Search</button>
+</div>
+
+@code{
+
+        [Parameter]
+        public EventCallback<string> SetSearchInput { get; set; }
+
+        [Inject]
+        public IJSRuntime JSRuntime { get; set; }
+
+    private bool showDropdown = false;
+
+    [Parameter]
+    public bool LoadingState { get; set; }
+
+    [Parameter]
+    public string InputValue { get; set; }
+
+    [Parameter]
+    public string Location { get; set; }
+
+    private Response<string[]> autocompleteObject = new Response<string[]>{};
+
+    private string[] emptyData = { };
+
+    private string userInput;
+
+    private bool isData = false;
+
+    private async void Search()
+    {
+        if (!string.IsNullOrWhiteSpace(userInput))
+        {
+            await SetSearchInput.InvokeAsync(userInput);
+        }
+        isData = false;
+        showDropdown = false;
+    }
+
+    private void SetInput(string value)
+    {
+        userInput = value;
+        isData = false;
+        showDropdown = false;
+    }
+
+    private async void AutocompleteInput(string val)
+    {
+        userInput = val;
+        if (!string.IsNullOrWhiteSpace(userInput))
+        {
+            autocompleteObject = await GetAutocompleteResults(userInput);
+            isData = true;
+            showDropdown = true;
+        }
+        else
+        {
+            isData = false;
+            showDropdown = false;
+        }
+        StateHasChanged();
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        userInput = InputValue;
+    }
+
+    private async ValueTask<Response<string[]>> GetAutocompleteResults(string input)
+    {
+        return await JSRuntime.InvokeAsync<Response<string[]>>("methods.getAutocompleteResults", input);
+    }
+
+}
+
+@if (isData && showDropdown)
+{
+    <Dropdown Items="@autocompleteObject.data" Location="@Location" SetInput="@SetInput"/>
+}
+

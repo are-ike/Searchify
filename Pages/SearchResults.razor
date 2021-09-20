@@ -1,0 +1,88 @@
+@page "/searchresults"
+@inject NavigationManager NavManager
+@inject NavigationManager uriHelper
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.JSInterop;
+@using System.Web
+
+@code{
+    public string newQuery { get; set; }
+
+    private bool _isLoading = true;
+
+    private string _timeTaken;
+
+    private List<Result> _searchResults = new List<Result>();
+
+    private void SetSearchResults(List<Result> searchResults, string time)
+    {
+        _searchResults = searchResults.ToList();
+        _timeTaken = time;
+        SetLoadingState(false);
+    }
+
+    private void SetLoadingState(bool state)
+    {
+        _isLoading = state;
+        StateHasChanged();
+    }
+
+    private void SetSearchInput(string query)
+    {
+        NavManager.NavigateTo($"/searchresults?{query}");
+        OnInitialized();
+        StateHasChanged();
+    }
+
+    protected override async void OnInitialized()
+    {
+        var query = new Uri(NavManager.Uri).Query;
+        newQuery = HttpUtility.UrlDecode(query.Split('?')[1]);
+        base.OnInitialized();
+        await Fetch();
+    }
+
+}
+
+<div style="margin: auto; margin-bottom: 1rem;">
+    <SearchBar SetSearchInput="SetSearchInput" LoadingState="_isLoading" InputValue="@newQuery" Location="srs" />
+</div>
+@code{
+    private Response<Result[]> fetchedObject;
+
+    [Inject]
+    public IJSRuntime JSRuntime { get; set; }
+
+    protected async Task Fetch()
+    {
+        SetLoadingState(true);
+        fetchedObject = await GetSearchResults();
+        SetSearchResults(fetchedObject.data.ToList(), fetchedObject.message);
+    }
+
+    private async ValueTask<Response<Result[]>> GetSearchResults()
+    {
+        return await JSRuntime.InvokeAsync<Response<Result[]>>("methods.getSearchResults", newQuery);
+    }
+}
+@if (_isLoading == true)
+{
+    <div style="width:inherit; height:100%; display:flex; align-items:center; justify-content:center;" id="loader">
+        <div class="loadingio-spinner-rolling-q47nuupjyzt">
+            <div class="ldio-6rslcw9j9xe">
+                <div> </div>
+            </div>
+        </div>
+    </div>
+
+}
+else if (_isLoading == false && _searchResults.Count > 0)
+{
+    <DisplaySearchResults totalResults="_searchResults" time="@_timeTaken" />
+}
+else
+{
+    <div style="padding-left:3rem;">
+        <h6 style="opacity: 0.7;">No search Results</h6>
+    </div>
+}

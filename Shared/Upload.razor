@@ -1,0 +1,52 @@
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.JSInterop;
+
+<div style="max-width:90%; width:1024px; padding-left:3.2rem">
+    <h6 style="opacity: 0.7;margin-bottom:10px;">Upload your files here</h6>
+    <h6 style="margin-bottom:2rem; font-size: 12px" class="text-primary">Please fill in all fields</h6>
+
+    <div style="display:flex;" class="mb-3">
+        <label style="width:40%; opacity: 0.7;">File Name</label>
+        <input type="text" style="width:60%" class="py-1 px-1" id="file-name" @bind="fileName"/>
+    </div>
+    <div style="display:flex;" class="mb-3">
+        <label style="width:40%; opacity: 0.7;">File Preview Text</label>
+        <input type="text" style="width:60%" class="py-1 px-1" id="preview-text" @bind="previewText"/>
+    </div>
+    <div style="display:flex; margin-bottom: 5rem">
+        <label style="width:40%; opacity: 0.7;">Upload File</label>
+        <input type="file" style="width:60%" class="py-1 px-1" id="file" @onchange="CheckForFile" />
+    </div>
+
+
+    <button class="btn btn-primary" id="upload-btn" @onclick="Submit">Upload</button>
+</div>
+
+@code{
+    [Inject]
+    public IJSRuntime JSRuntime { get; set; }
+
+    public string fileName;
+
+    public string previewText;
+
+    public bool isFileAdded = false;
+
+    private async Task CheckForFile()
+    {
+       isFileAdded = await JSRuntime.InvokeAsync<bool>("methods.checkFile");
+    }
+
+    private async Task SubmitFile()
+    {
+        await JSRuntime.InvokeVoidAsync("methods.submitFile");
+    }
+
+    private async void Submit()
+    {
+        if(!string.IsNullOrWhiteSpace(fileName) && !string.IsNullOrWhiteSpace(previewText) && isFileAdded)
+        {
+            await SubmitFile();
+        }
+    }
+}

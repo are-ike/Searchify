@@ -1,0 +1,28 @@
+@inject HttpClient Http
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.JSInterop;
+
+@code{
+    private Response<Result[]> fetchedObject;
+
+    [Inject]
+    public IJSRuntime JSRuntime { get; set; }
+
+    [Parameter]
+    public Action<List<Result>, string> SetSearchResults { get; set; }
+
+    [Parameter]
+    public string Query { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine("hi");
+        fetchedObject = await GetSearchResults();
+        SetSearchResults.Invoke(fetchedObject.data.ToList(), fetchedObject.message);
+    }
+
+    private async ValueTask<Response<Result[]>> GetSearchResults()
+    {
+        return await JSRuntime.InvokeAsync<Response<Result[]>>("methods.getSearchResults", Query);
+    }
+}

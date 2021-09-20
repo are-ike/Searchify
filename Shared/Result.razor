@@ -1,0 +1,45 @@
+@code{
+    [Parameter]
+    public string Name { get; set; }
+
+    [Parameter]
+    public string Preview_Text { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public string Url { get; set; }
+
+    [Parameter]
+    public string Location { get; set; }
+
+    private string SplitUrl()
+    {
+        string[] newUrl = Url.Split('/');
+        return newUrl[newUrl.Length - 1].ToString();
+    }
+}
+<style>
+    .nav-link{
+        padding-left: 0;
+    }
+    .nav-link:hover{
+    text-decoration:underline;
+    }
+    .nav-link:visited {
+        color: rgb(102, 0, 153);
+    }
+
+</style>
+<div class="border-bottom py-2 my-2" style="width:650px; max-width:80%">
+    <NavLink class="nav-link" href=@($"result/{Id}?{SplitUrl()}")>@Name</NavLink>
+    @if (Location == "files")
+    {
+        <p style="color:red">Delete</p>
+    }
+    else {
+        <p>@Preview_Text</p>
+    }
+    
+</div>

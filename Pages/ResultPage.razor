@@ -1,0 +1,56 @@
+@page "/result/{Id:int}"
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.JSInterop;
+@inject NavigationManager NavigationManager
+@code{
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public int Url { get; set; }
+
+    private string url;
+
+    private Response<Result> fetchedDoc;
+
+    private Result resultData;
+
+    [Inject]
+    public IJSRuntime JSRuntime { get; set; }
+
+    private async ValueTask<Response<Result>> getResult()
+    {
+        return await JSRuntime.InvokeAsync<Response<Result>>("methods.getResult", Id);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        url = new Uri(NavigationManager.Uri).Query;
+        fetchedDoc = await getResult();
+        resultData = fetchedDoc.data;
+        StateHasChanged();
+    }
+}
+
+<div>
+    @if (resultData != null)
+    {
+        <h4 style="padding-left:6rem">@resultData.Name</h4>
+        <div style="padding-left:6rem">
+            <p>@resultData.Preview_Text</p>
+        </div>
+        <div style="margin:auto; width: 70%; max-width: 600px; display:flex; align-items:center; justify-content:center">
+            <a href=@($"https://res.cloudinary.com/isaaccloud/image/upload/v1629553627/searchify/{url.Split('?')[1]}") download class="btn" style="background-color:green; margin: auto;  color: white; margin-bottom: 2rem;">Download</a>
+        </div>
+    }
+    else
+    {
+        <div id="loader" style="width:inherit; height:100%; display:flex; align-items:center; justify-content:center;">
+            <div class="loadingio-spinner-rolling-q47nuupjyzt">
+                <div class="ldio-6rslcw9j9xe">
+                    <div> </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

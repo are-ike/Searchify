@@ -1,0 +1,41 @@
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.JSInterop;
+
+<style>
+    .btn-dark{
+        background-color: navy;
+    }
+</style>
+@code{
+
+
+    [Parameter]
+    public int TotalPages { get; set; }
+
+    [Parameter]
+    public EventCallback<int> UpdatePage { get; set; }
+
+    [Parameter]
+    public int CurrentPage { get; set; }
+
+    [Parameter]
+    public int PageSize { get; set; }
+
+    public string btnStyling = "btn btn-light mx-1 border-dark";
+
+    public string activeBtnStyling = "btn btn-dark mx-1";
+
+
+}
+
+<div class="py-4 mt-auto ">
+    @for (int i = 1; i <= (int)Math.Ceiling((double)TotalPages / PageSize); i++)
+    {
+        int pageNumber = i;
+        <button class=@( CurrentPage == i ? activeBtnStyling : btnStyling )
+                @onclick=@((e) => {UpdatePage.InvokeAsync(pageNumber);})>
+            @i
+        </button>
+    }
+</div>
+

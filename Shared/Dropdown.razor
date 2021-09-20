@@ -1,0 +1,65 @@
+@using System.Linq
+@code{
+    [Parameter]
+    public string[] Items { get; set; }
+
+    [Parameter]
+    public string Location { get; set; }
+
+    [Parameter]
+    public EventCallback<string> SetInput { get; set; }
+}
+
+<style>
+    .dropdown {
+        background: white;
+        display: block;
+        z-index: 100;
+        box-shadow: 0 7px 14px rgba(0,0,0,0.2);
+        border-radius: 6px;
+        border: grey;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        position:absolute
+    }
+    .idx{
+        top: 55%;
+        left: 33.7%
+    }
+    .item {
+        padding: 0.5rem 1rem;
+        border-bottom: grey;
+        cursor: pointer
+    }
+
+        .item:hover {
+            background-color: navy;
+            color: white;
+        }
+</style>
+
+@if (Items.Length > 0)
+{
+
+    <div class="@(Location == "srs" ? "srs dropdown" : "idx dropdown" )" style="@(Location == "idx" ? "display:flex; align-self:center; justify-self:center; max-width: 300px; width: 90%;" : "display:flex; align-self:center; justify-self:center; max-width: 515px; width: 90%; margin-left: 3rem;")">
+        @foreach (string item in Items)
+        {
+            <p class="item" @onclick="(arg) => getValue(arg, item)">@((MarkupString)item)</p>
+
+        }
+    </div>
+}
+
+@code{
+
+    private void getValue(EventArgs e, string item)
+    {
+        string[] value = item.Split("<mark>");
+        string firstString = String.Join(" ", value);
+        string[] secondValue = firstString.Split("</mark>");
+        string secondString = String.Join(" ", secondValue);
+        var word = secondValue.Select(s => s.ToString().Trim());
+        SetInput.InvokeAsync(String.Join(" ", word));
+    }
+}
